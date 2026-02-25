@@ -1,7 +1,7 @@
 # attacker server
 import socket
 
-ip = "172.25.191.60"
+ip = "0.0.0.0"
 port = 8080
 
 def connect():

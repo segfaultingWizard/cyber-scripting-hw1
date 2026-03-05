@@ -32,7 +32,7 @@ def transfer(conn, command, operation):
             break
         f.write(bits)
 
-     print("File written to: /root/Desktop")
+    print("File written to: /root/Desktop")
 
 
 def connecting():

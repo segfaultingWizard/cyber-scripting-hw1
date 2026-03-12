@@ -9,10 +9,10 @@ import hashlib
 from datetime import datetime as dt
 
 ip = "0.0.0.0"
-port = 8080
-chunksize = 1024
 destinationPath = os.path.join(os.path.expanduser('~'), 'GrabbedFiles')
-hashAlgorithm = 'sha256'
+from common import port
+from common import chunksize
+from common import hashAlgorithm
 
 # https://sqlpey.com/python/top-8-methods-to-hash-files-in-python/
 def getFileHash(filePath):

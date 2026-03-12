@@ -17,6 +17,19 @@ Remote file hash: {hash1}
 Local file hash: {hash2}""".format(hash1=remoteFileHash, hash2=localFileHash)
         super().__init__(message)
 
+# Source - https://stackoverflow.com/a/45669280
+# Posted by Alexander C, modified by community and here. See post 'Timeline' for change history
+# Retrieved 2026-03-12, License - CC BY-SA 4.0
+# https://stackoverflow.com/questions/8391411/how-to-block-calls-to-print/45669280#45669280
+class HiddenPrints:
+    def __enter__(self):
+        self._original_stdout = sys.stdout
+        sys.stdout = open(os.devnull, 'w')
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        sys.stdout.close()
+        sys.stdout = self._original_stdout
+
 # https://sqlpey.com/python/top-8-methods-to-hash-files-in-python/
 def getFileHash(filePath):
     fileHash = hashlib.new(hashAlgorithm)

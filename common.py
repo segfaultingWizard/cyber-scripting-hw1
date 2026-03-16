@@ -59,7 +59,7 @@ def sendFile(mySocket, path):
 
 def receiveFile(mySocket, destinationFile):
     try:
-        os.mkdir(os.path.dirname(destinationFile))
+        os.makedirs(os.path.dirname(destinationFile))
         print('Created destination folder')
     except FileExistsError:
         print('Destination folder exists')

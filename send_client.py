@@ -17,6 +17,7 @@ import hashlib
 
 from common import sendFile
 from common import HiddenPrints
+from common import receiveFile
 
 # Fails to import on Linux
 try:

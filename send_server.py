@@ -26,7 +26,7 @@ def shell(mySocket):
         commandList = command.split()
 
         mySocket.send(command.encode())
-        if 'terminate' == commandList[0]:
+        if 'terminate' == commandList[0] or 'exit' == commandList[0]:
             break
 
         # Command format: grab <File Path>

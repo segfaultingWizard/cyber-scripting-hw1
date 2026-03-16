@@ -57,7 +57,7 @@ def shell(mySocket):
         command = mySocket.recv(chunksize).decode()
         commandList = command.split()
 
-        if 'terminate' == commandList[0]:
+        if 'terminate' == commandList[0] or 'exit' == commandList[0]:
             break
 
         elif 'checkUserLevel' == commandList[0]:

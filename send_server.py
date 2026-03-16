@@ -32,7 +32,9 @@ def connect():
 
     while True:
         print("=" * 60)
-        command = input("Shell> ")
+        command = ''
+        while not command or command.isspace():
+            command = input("Shell> ")
         commandList = command.split()
 
         if 'terminate' == commandList[0]:

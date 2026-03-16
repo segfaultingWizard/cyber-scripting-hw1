@@ -1,7 +1,5 @@
-# attacker server
-#TCP
-#Change directory
-#TCP bi-directional data transfer
+# Attacker server
+# TCP bi-directional data transfer (Infiltration and exfiltation)-CLIENT
 
 import os
 import socket

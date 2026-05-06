@@ -52,6 +52,18 @@ def shell(mySocket):
             destinationFile = os.path.join(destinationPath + '/Screenshots', fileName)
             receiveFile(mySocket, destinationFile)
 
+        elif 'yara' == commandList[0]:
+            # Same as sending a file. We're sending the local YARA file
+            localPath = commandList[1]
+            sendFile(mySocket, localPath)
+
+            print(mySocket.recv(chunksize).decode()) # YARA Result. Would be good to have better packet handling, what if result is larger than chunksize?
+
+            # Download YARA report
+            fileName = dt.now().isoformat()
+            destinationFile = os.path.join(destinationPath, 'YaraResults', fileName)
+            receiveFile(mySocket, destinationFile)
+
         else:
             print(mySocket.recv(chunksize).decode())
 

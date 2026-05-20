@@ -1,7 +1,8 @@
 Launch server first, client attempts connecting periodically.
-Interface is like a bash shell with a few built-ins.
+Interface is like your client's native shell with a few built-ins.
 
 Retrieved files go to ~/GrabbedFiles or equivalent.
+Yara searches start recursively from the client's working directory.
 
 Custom command syntax:
 grab <remote filepath>

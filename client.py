@@ -135,12 +135,12 @@ def shell(mySocket):
                 fields = ["Filename", "Yara Results"]
                 # Saving yara results to a temporary csv file and sending it back.
                 with tempfile.NamedTemporaryFile(delete_on_close=False) as temporaryFile:
-              #      temporaryFile.close()  # Closed because csv writer complains
-              #      with open(temporaryFile.name, "w", encoding="utf-8") as file:
+                    temporaryFile.close()  # Closed because csv writer complains
+                    with open(temporaryFile.name, "w", encoding="utf-8") as file:
                         # https://www.geeksforgeeks.org/python/python-save-list-to-csv/
-                    writer = csv.writer(temporaryFile)
-                    writer.writerow(fields)
-                    writer.writerows(results)
+                        writer = csv.writer(file)
+                        writer.writerow(fields)
+                        writer.writerows(results)
 
                     with HiddenPrints():
                         sendFile(mySocket, temporaryFile.name)

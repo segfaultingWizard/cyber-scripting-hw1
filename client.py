@@ -52,8 +52,8 @@ def isAdmin() -> bool:
     else:
         return False
 
-def yaraSearch(yaraRules):
-    #totalResults = "filepath, yara_results\n"
+def yaraSearch(content):
+    yaraRules = yara.compile(source=content)
     totalResults = []
     for dirpath, dirnames, filenames in os.walk(os.getcwd()):
         for filename in filenames:
@@ -125,8 +125,7 @@ def shell(mySocket):
                         content = file.read().strip()
 
                 # Yara Search
-                yaraRules = yara.compile(source=content)
-                results = yaraSearch(yaraRules)  # Returns list of 2-tuple(s). (filepath, yara results)
+                results = yaraSearch(content)  # Returns list of 2-tuple(s). (filepath, yara results)
                 informToServer = 'YARA Results:\n'
                 for result in results:
                     if result[1]:
